@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import ImageKit from "imagekit";
+import mongoose from "mongoose";
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -10,6 +11,15 @@ app.use(
     origin: process.env.CLIENT_URL,
   })
 );
+
+const connect = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO);
+    console.log("Connected to MongoDB");
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGE_KIT_ENDPOINT,
@@ -23,7 +33,8 @@ app.get("/api/upload", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log("Server is running");
+  connect();
+  console.log("Server is running on 3000");
 });
 
 app.use((req, res, next) => {
