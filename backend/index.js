@@ -94,6 +94,32 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
+app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
+  const userId = req.auth.userId;
+
+  try {
+    const userChats = await UserChats.find({ userId: userId });
+
+    res.status(200).send(userChats[0].chats);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error fetching user chats");
+  }
+});
+
+app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
+  const userId = req.auth.userId;
+
+  try {
+    const chat = await Chat.findOne({ _id: req.params.id, userId: userId });
+
+    res.status(200).send(chat);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error fetching user chats!");
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(401).send("Unauthenticated!");
