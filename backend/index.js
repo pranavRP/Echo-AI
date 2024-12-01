@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import url from "url";
 import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import UserChats from "./models/userChats.js";
@@ -8,6 +10,9 @@ import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
 const port = process.env.PORT || 3000;
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
@@ -39,12 +44,6 @@ app.get("/api/upload", ClerkExpressRequireAuth(), (req, res) => {
   const result = imagekit.getAuthenticationParameters();
   res.send(result);
 });
-
-// app.get("/api/test", ClerkExpressRequireAuth(), (req, res) => {
-//   const userId = req.auth.userId;
-//   console.log(userId);
-//   res.send("Success!");
-// });
 
 app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
@@ -156,6 +155,12 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(401).send("Unauthenticated!");
+});
+
+app.use(express.static(path.join(__dirname, "../client")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "index.html"));
 });
 
 app.listen(port, () => {
