@@ -13,6 +13,8 @@ app.use(
   cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -117,6 +119,37 @@ app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send("Error fetching user chats!");
+  }
+});
+
+app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
+  const userId = req.auth.userId;
+
+  const { question, answer, img } = req.body;
+
+  const newItems = [
+    ...(question
+      ? [{ role: "user", parts: [{ text: question }], ...(img && { img }) }]
+      : []),
+    { role: "model", parts: [{ text: answer }] },
+  ];
+
+  try {
+    const updatedChat = await Chat.updateOne(
+      { _id: req.params.id, userId: userId },
+      {
+        $push: {
+          history: {
+            $each: newItems,
+          },
+        },
+      }
+    );
+
+    res.status(200).send(updatedChat);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error adding conversations!");
   }
 });
 

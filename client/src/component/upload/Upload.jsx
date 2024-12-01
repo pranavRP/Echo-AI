@@ -9,7 +9,11 @@ const publicKey = import.meta.env.VITE_IMAGE_KIT_PUBLIC_KEY;
 
 const authenticator = async () => {
   try {
-    const response = await fetch("http://localhost:3000/api/upload");
+    const response = await fetch("http://localhost:3000/api/upload", {
+      headers: {
+        Authorization: `Bearer ${await window.Clerk.session.getToken()}`,
+      },
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
