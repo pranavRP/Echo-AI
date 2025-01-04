@@ -4,16 +4,9 @@ import { useRef } from "react";
 const urlEndpoint = import.meta.env.VITE_IMAGE_KIT_ENDPOINT;
 const publicKey = import.meta.env.VITE_IMAGE_KIT_PUBLIC_KEY;
 
-// console.log("urlEndpoint:", urlEndpoint); // For debugging
-// console.log("publicKey:", publicKey); // For debugging
-
 const authenticator = async () => {
   try {
-    const response = await fetch("echo-ai-backend.vercel.app/api/upload", {
-      headers: {
-        Authorization: `Bearer ${await window.Clerk.session.getToken()}`,
-      },
-    });
+    const response = await fetch("http://localhost:3000/api/upload");
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -31,17 +24,14 @@ const authenticator = async () => {
 };
 
 const Upload = ({ setImg }) => {
-  const ikUploadRef = useRef(null); // Define the ref
-
+  const ikUploadRef = useRef(null);
   const onError = (err) => {
     console.log("Error", err);
   };
 
   const onSuccess = (res) => {
     console.log("Success", res);
-    if (res?.filePath) {
-      setImg((prev) => ({ ...prev, isLoading: false, dbData: res }));
-    }
+    setImg((prev) => ({ ...prev, isLoading: false, dbData: res }));
   };
 
   const onUploadProgress = (progress) => {
@@ -80,8 +70,8 @@ const Upload = ({ setImg }) => {
         useUniqueFileName={true}
         onUploadProgress={onUploadProgress}
         onUploadStart={onUploadStart}
-        ref={ikUploadRef}
         style={{ display: "none" }}
+        ref={ikUploadRef}
       />
       {
         <label onClick={() => ikUploadRef.current.click()}>
