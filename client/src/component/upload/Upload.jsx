@@ -1,5 +1,5 @@
 import { IKContext, IKImage, IKUpload } from "imagekitio-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 const urlEndpoint = import.meta.env.VITE_IMAGE_KIT_ENDPOINT;
 const publicKey = import.meta.env.VITE_IMAGE_KIT_PUBLIC_KEY;
@@ -25,6 +25,8 @@ const authenticator = async () => {
 
 const Upload = ({ setImg }) => {
   const ikUploadRef = useRef(null);
+  const [loadingImage, setLoadingImage] = useState(false);
+
   const onError = (err) => {
     console.log("Error", err);
   };
@@ -32,6 +34,7 @@ const Upload = ({ setImg }) => {
   const onSuccess = (res) => {
     console.log("Success", res);
     setImg((prev) => ({ ...prev, isLoading: false, dbData: res }));
+    setLoadingImage(false);
   };
 
   const onUploadProgress = (progress) => {
@@ -53,6 +56,7 @@ const Upload = ({ setImg }) => {
           },
         },
       }));
+      setLoadingImage(true);
     };
     reader.readAsDataURL(file);
   };
@@ -75,7 +79,11 @@ const Upload = ({ setImg }) => {
       />
       {
         <label onClick={() => ikUploadRef.current.click()}>
-          <img src="/attachment.png" alt="" />
+          {loadingImage ? (
+            <img src="/placeholder.png" alt="Loading..." />
+          ) : (
+            <img src="/attachment.png" alt="" />
+          )}
         </label>
       }
     </IKContext>
