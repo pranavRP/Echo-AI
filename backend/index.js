@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
-    origin: [process.env.CLIENT_URL, "https://echo-ai-client.onrender.com"],
+    origin: process.env.CLIENT_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
