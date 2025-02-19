@@ -14,17 +14,26 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// ✅ CORS Middleware (Fix)
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_URL || "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 app.use(express.json());
 
+// ✅ Connect to MongoDB
 const connect = async () => {
   try {
     await mongoose.connect(process.env.MONGO);
@@ -34,12 +43,14 @@ const connect = async () => {
   }
 };
 
+// ImageKit Configuration
 const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGE_KIT_ENDPOINT,
   publicKey: process.env.IMAGE_KIT_PUBLIC_KEY,
   privateKey: process.env.IMAGE_KIT_PRIVATE_KEY,
 });
 
+// Routes
 app.get("/api/upload", (req, res) => {
   const result = imagekit.getAuthenticationParameters();
   res.send(result);
@@ -50,34 +61,22 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   const { text } = req.body;
 
   try {
-    //CREATE NEW CHAT
     const newChat = new Chat({
       userId: userId,
       history: [{ role: "user", parts: [{ text }] }],
     });
 
     const savedChat = await newChat.save();
-
-    //CHECK IF USER CHATS EXISTS
     const userChats = await UserChats.find({ userId: userId });
-
-    //IF NOT, CREATE NEW USER CHATS AND ADD THE CHAT IN THE CHATS ARRAY
 
     if (!userChats.length) {
       const newUserChats = new UserChats({
         userId: userId,
-        chats: [
-          {
-            _id: savedChat._id,
-            title: text.substring(0, 40),
-          },
-        ],
+        chats: [{ _id: savedChat._id, title: text.substring(0, 40) }],
       });
 
       await newUserChats.save();
     } else {
-      //IF EXISTS, PUSH THE CHAT TO THE EXITING ARRAY
-
       await UserChats.updateOne(
         { userId: userId },
         {
@@ -86,9 +85,9 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
           },
         }
       );
-
-      res.status(201).send(savedChat._id);
     }
+
+    res.status(201).send(savedChat._id);
   } catch (err) {
     console.log(err);
     res.status(500).send("Error creating chat");
@@ -100,8 +99,7 @@ app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
 
   try {
     const userChats = await UserChats.find({ userId: userId });
-
-    res.status(200).send(userChats[0].chats);
+    res.status(200).send(userChats[0]?.chats || []);
   } catch (error) {
     console.log(error);
     res.status(500).send("Error fetching user chats");
@@ -113,7 +111,6 @@ app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
 
   try {
     const chat = await Chat.findOne({ _id: req.params.id, userId: userId });
-
     res.status(200).send(chat);
   } catch (error) {
     console.log(error);
@@ -123,7 +120,6 @@ app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
 
 app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
-
   const { question, answer, img } = req.body;
 
   const newItems = [
@@ -152,27 +148,21 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
+// Error Handler Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(401).send("Unauthenticated!");
 });
 
+// Serve Static Files (Ensure it runs AFTER API routes)
 app.use(express.static(path.join(__dirname, "../client")));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client", "index.html"));
 });
 
+// Start Server
 app.listen(port, () => {
   connect();
-  console.log("Server is running on 3000");
-});
-
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", process.env.CLIENT_URL);
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
+  console.log(`Server is running on port ${port}`);
 });
