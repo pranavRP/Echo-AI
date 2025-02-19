@@ -14,11 +14,10 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const CLIENT_URL =
-  process.env.CLIENT_URL ||
-  "https://echoai-client-icqcsbn77-pranav-pachpandes-projects.vercel.app";
-console.log("Allowed CORS Origin:", CLIENT_URL);
+const CLIENT_URL = process.env.CLIENT_URL || "https://echoai-client.vercel.app";
+console.log("✅ Allowed CORS Origin:", CLIENT_URL);
 
+// ✅ Apply CORS Middleware Correctly
 app.use(
   cors({
     origin: CLIENT_URL,
@@ -28,18 +27,18 @@ app.use(
   })
 );
 
-app.use(express.json());
-
 // ✅ Handle Preflight CORS Requests
 app.options("*", cors());
+
+app.use(express.json());
 
 // ✅ Connect to MongoDB
 const connect = async () => {
   try {
     await mongoose.connect(process.env.MONGO);
-    console.log("Connected to MongoDB");
+    console.log("✅ Connected to MongoDB");
   } catch (error) {
-    console.log(error);
+    console.error("❌ MongoDB Connection Failed:", error);
   }
 };
 
@@ -99,6 +98,9 @@ app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
 
   try {
     const userChats = await UserChats.find({ userId: userId });
+    if (!userChats.length) {
+      return res.status(404).send({ error: "No chats found for this user" });
+    }
     res.status(200).send(userChats[0]?.chats || []);
   } catch (error) {
     console.log(error);
@@ -158,5 +160,5 @@ app.get("*", (req, res) => {
 // Start Server
 app.listen(port, () => {
   connect();
-  console.log(`Server is running on port ${port}`);
+  console.log(`✅ Server is running on port ${port}`);
 });
