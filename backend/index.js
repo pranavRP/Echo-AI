@@ -14,24 +14,24 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ CORS Middleware (Fix)
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_URL || "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+const CLIENT_URL =
+  process.env.CLIENT_URL ||
+  "https://echoai-client-icqcsbn77-pranav-pachpandes-projects.vercel.app";
+console.log("Allowed CORS Origin:", CLIENT_URL);
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use(express.json());
+
+// ✅ Handle Preflight CORS Requests
+app.options("*", cors());
 
 // ✅ Connect to MongoDB
 const connect = async () => {
@@ -132,13 +132,7 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   try {
     const updatedChat = await Chat.updateOne(
       { _id: req.params.id, userId: userId },
-      {
-        $push: {
-          history: {
-            $each: newItems,
-          },
-        },
-      }
+      { $push: { history: { $each: newItems } } }
     );
 
     res.status(200).send(updatedChat);
@@ -154,7 +148,7 @@ app.use((err, req, res, next) => {
   res.status(401).send("Unauthenticated!");
 });
 
-// Serve Static Files (Ensure it runs AFTER API routes)
+// Serve Static Files
 app.use(express.static(path.join(__dirname, "../client")));
 
 app.get("*", (req, res) => {
