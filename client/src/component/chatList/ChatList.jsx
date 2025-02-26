@@ -7,10 +7,11 @@ const ChatList = () => {
     queryKey: ["userChats"],
     queryFn: () =>
       fetch(`${import.meta.env.VITE_API_URL}/api/userchats`, {
-        //credentials: "include",
+        credentials: "include",
       }).then((res) => res.json()),
   });
 
+  //console.log(data);
   return (
     <div className="chatList">
       <span className="title">DASHBOARD</span>
