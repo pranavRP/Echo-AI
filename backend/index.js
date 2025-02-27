@@ -3,7 +3,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import path from "path";
-import url, { fileURLToPath } from "url";
+//import url, { fileURLToPath } from "url";
 import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import UserChats from "./models/userChats.js";
@@ -64,7 +64,7 @@ app.get("/api/upload", (req, res) => {
 });
 
 app.post("/api/chats", requireAuth(), async (req, res) => {
-  const userId = req.requireAuth.userId;
+  const userId = req.auth.userId;
   const { text } = req.body;
 
   try {
@@ -77,7 +77,7 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
     const savedChat = await newChat.save();
 
     // CHECK IF THE USERCHATS EXISTS
-    const userChats = await UserChats.find({ userId: userId });
+    const userChats = await UserChats.findOne({ userId: userId });
 
     // IF DOESN'T EXIST CREATE A NEW ONE AND ADD THE CHAT IN THE CHATS ARRAY
     if (!userChats.length) {
@@ -92,6 +92,7 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
       });
 
       await newUserChats.save();
+      return res.status(201).send(savedChat._id);
     } else {
       // IF EXISTS, PUSH THE CHAT TO THE EXISTING ARRAY
       await UserChats.updateOne(
@@ -115,7 +116,7 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
 });
 
 app.get("/api/userchats", requireAuth(), async (req, res) => {
-  const userId = req.requireAuth.userId;
+  const userId = req.auth.userId;
   try {
     const userChats = await UserChats.findOne({ userId });
     // If there's no doc for this user, send back an empty array
@@ -133,7 +134,7 @@ app.get("/api/userchats", requireAuth(), async (req, res) => {
 });
 
 app.get("/api/chats/:id", requireAuth(), async (req, res) => {
-  const userId = req.requireAuth.userId;
+  const userId = req.auth.userId;
 
   try {
     const chat = await Chat.findOne({ _id: req.params.id, userId });
@@ -146,7 +147,7 @@ app.get("/api/chats/:id", requireAuth(), async (req, res) => {
 });
 
 app.put("/api/chats/:id", requireAuth(), async (req, res) => {
-  const userId = req.requireAuth.userId;
+  const userId = req.auth.userId;
 
   const { question, answer, img } = req.body;
 
