@@ -8,7 +8,7 @@ import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import UserChats from "./models/userChats.js";
 import Chat from "./models/chats.js";
-import { ClerkExpressRequireAuth } from "@clerk/express";
+import { auth } from "@clerk/express";
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -63,7 +63,7 @@ app.get("/api/upload", (req, res) => {
   res.send(result);
 });
 
-app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
+app.post("/api/chats", auth(), async (req, res) => {
   const userId = req.auth.userId;
   const { text } = req.body;
 
@@ -114,7 +114,7 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
+app.get("/api/userchats", auth(), async (req, res) => {
   const userId = req.auth.userId;
   try {
     const userChats = await UserChats.findOne({ userId });
@@ -132,7 +132,7 @@ app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
+app.get("/api/chats/:id", auth(), async (req, res) => {
   const userId = req.auth.userId;
 
   try {
@@ -145,7 +145,7 @@ app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
+app.put("/api/chats/:id", auth(), async (req, res) => {
   const userId = req.auth.userId;
 
   const { question, answer, img } = req.body;
