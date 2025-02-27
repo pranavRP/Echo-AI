@@ -8,7 +8,7 @@ import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import UserChats from "./models/userChats.js";
 import Chat from "./models/chats.js";
-import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
+import { ClerkExpressRequireAuth } from "@clerk/express";
 
 const port = process.env.PORT || 3000;
 const app = express();
