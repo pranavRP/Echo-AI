@@ -8,13 +8,13 @@ import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import UserChats from "./models/userChats.js";
 import Chat from "./models/chats.js";
-import { auth } from "@clerk/express";
+import { requireAuth } from "@clerk/express";
 
 const port = process.env.PORT || 3000;
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 const CLIENT_URL = "http://localhost:5173";
 // const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
@@ -63,8 +63,8 @@ app.get("/api/upload", (req, res) => {
   res.send(result);
 });
 
-app.post("/api/chats", auth(), async (req, res) => {
-  const userId = req.auth.userId;
+app.post("/api/chats", requireAuth(), async (req, res) => {
+  const userId = req.requireAuth.userId;
   const { text } = req.body;
 
   try {
@@ -114,8 +114,8 @@ app.post("/api/chats", auth(), async (req, res) => {
   }
 });
 
-app.get("/api/userchats", auth(), async (req, res) => {
-  const userId = req.auth.userId;
+app.get("/api/userchats", requireAuth(), async (req, res) => {
+  const userId = req.requireAuth.userId;
   try {
     const userChats = await UserChats.findOne({ userId });
     // If there's no doc for this user, send back an empty array
@@ -132,8 +132,8 @@ app.get("/api/userchats", auth(), async (req, res) => {
   }
 });
 
-app.get("/api/chats/:id", auth(), async (req, res) => {
-  const userId = req.auth.userId;
+app.get("/api/chats/:id", requireAuth(), async (req, res) => {
+  const userId = req.requireAuth.userId;
 
   try {
     const chat = await Chat.findOne({ _id: req.params.id, userId });
@@ -145,8 +145,8 @@ app.get("/api/chats/:id", auth(), async (req, res) => {
   }
 });
 
-app.put("/api/chats/:id", auth(), async (req, res) => {
-  const userId = req.auth.userId;
+app.put("/api/chats/:id", requireAuth(), async (req, res) => {
+  const userId = req.requireAuth.userId;
 
   const { question, answer, img } = req.body;
 
@@ -181,11 +181,11 @@ app.use((err, req, res, next) => {
 });
 
 // PRODUCTION
-app.use(express.static(path.join(__dirname, "../client/dist")));
+// app.use(express.static(path.join(__dirname, "../client/dist")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
-});
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+// });
 
 app.listen(port, () => {
   connect();
