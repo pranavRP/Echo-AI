@@ -16,8 +16,8 @@ const app = express();
 // const __filename = fileURLToPath(import.meta.url);
 // const __dirname = path.dirname(__filename);
 
-const CLIENT_URL = "http://localhost:5173";
-// const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+//const CLIENT_URL = "http://localhost:5173";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 console.log("✅ Allowed CORS Origin:", CLIENT_URL);
 
 //✅ Apply CORS Middleware Correctly
@@ -54,9 +54,9 @@ const imagekit = new ImageKit({
 
 // Routes
 
-// app.get("/", (req, res) => {
-//   res.send("Hello");
-// });
+app.get("/", (req, res) => {
+  res.send("Hello");
+});
 
 app.get("/api/upload", (req, res) => {
   const result = imagekit.getAuthenticationParameters();
@@ -115,8 +115,8 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
   }
 });
 
-app.get("/api/userchats", requireAuth(), async (req, res) => {
-  const userId = req.auth.userId;
+app.get("/api/userchats", async (req, res) => {
+  const userId = userId;
   try {
     const userChats = await UserChats.findOne({ userId });
     // If there's no doc for this user, send back an empty array
@@ -181,14 +181,6 @@ app.use((err, req, res, next) => {
   res.status(401).send("Unauthenticated!");
 });
 
-// PRODUCTION
-// app.use(express.static(path.join(__dirname, "../client/dist")));
-
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
-// });
-
-app.listen(port, () => {
-  connect();
-  console.log("Server running on 3000");
-});
+export default app;
+connect(); // Ensures MongoDB connects
+console.log("✅ Express Backend Ready for Serverless Deployment");
