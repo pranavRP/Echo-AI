@@ -121,8 +121,8 @@ npm run preview # Preview production build
 
 ## 📸 Screenshots
 
-![Landing Page](https://drive.google.com/file/d/1tdR6goQZ5BkJ5xDxajW0k0kfbyjl_PE-/view?usp=sharing)
-![Chat Screenshot](https://drive.google.com/file/d/1uH-3v0usLtWgJBI8hkUaTaHbyMmPrrcA/view?usp=sharing)
+![Landing Page](./screenshots/landing%20page.png)
+![Chat Screenshot](./screenshots/Chat%20Page.png)
 
 ---
 
