@@ -121,8 +121,8 @@ npm run preview # Preview production build
 
 ## 📸 Screenshots
 
-![Landing Page]((https://imgur.com/a/f0Fdsd3))
-![Chat Screenshot](https://imgur.com/a/lQUOdpL)
+![Landing Page](https://imgur.com/BlerWV9)
+![Chat Screenshot](https://imgur.com/LP3MUl2)
 
 ---
 
