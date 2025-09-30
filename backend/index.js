@@ -3,18 +3,15 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import path from "path";
-//import url, { fileURLToPath } from "url";
 import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import UserChats from "./models/userChats.js";
 import Chat from "./models/chats.js";
 import { requireAuth } from "@clerk/express";
+import { clerkMiddleware } from "@clerk/express";
 
 const port = process.env.PORT || 3000;
 const app = express();
-
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
 
 //const CLIENT_URL = "http://localhost:5173";
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
@@ -34,6 +31,8 @@ app.use(
 app.options("*", cors());
 
 app.use(express.json());
+
+app.use(clerkMiddleware());
 
 // ✅ Connect to MongoDB
 const connect = async () => {
@@ -63,8 +62,9 @@ app.get("/api/upload", (req, res) => {
   res.send(result);
 });
 
-app.post("/api/chats", requireAuth(), async (req, res) => {
-  const userId = req.auth.userId;
+app.post("/api/chats", async (req, res) => {
+  //const userId = req.auth.userId;
+  const userId = req.body.userId || "anonymous";
   const { text } = req.body;
 
   try {
@@ -80,7 +80,7 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
     const userChats = await UserChats.findOne({ userId: userId });
 
     // IF DOESN'T EXIST CREATE A NEW ONE AND ADD THE CHAT IN THE CHATS ARRAY
-    if (!userChats.length) {
+    if (!userChats) {
       const newUserChats = new UserChats({
         userId: userId,
         chats: [
@@ -116,7 +116,7 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
 });
 
 app.get("/api/userchats", async (req, res) => {
-  const userId = userId;
+  const userId = req.query.userId || "anonymous";
   try {
     const userChats = await UserChats.findOne({ userId });
     // If there's no doc for this user, send back an empty array
@@ -133,11 +133,11 @@ app.get("/api/userchats", async (req, res) => {
   }
 });
 
-app.get("/api/chats/:id", requireAuth(), async (req, res) => {
-  const userId = req.auth.userId;
+app.get("/api/chats/:id", async (req, res) => {
+  //const userId = req.auth.userId;
 
   try {
-    const chat = await Chat.findOne({ _id: req.params.id, userId });
+    const chat = await Chat.findOne({ _id: req.params.id });
 
     res.status(200).send(chat);
   } catch (err) {
@@ -146,7 +146,7 @@ app.get("/api/chats/:id", requireAuth(), async (req, res) => {
   }
 });
 
-app.put("/api/chats/:id", requireAuth(), async (req, res) => {
+app.put("/api/chats/:id", async (req, res) => {
   const userId = req.auth.userId;
 
   const { question, answer, img } = req.body;
@@ -160,7 +160,7 @@ app.put("/api/chats/:id", requireAuth(), async (req, res) => {
 
   try {
     const updatedChat = await Chat.updateOne(
-      { _id: req.params.id, userId },
+      { _id: req.params.id },
       {
         $push: {
           history: {
@@ -179,6 +179,10 @@ app.put("/api/chats/:id", requireAuth(), async (req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(401).send("Unauthenticated!");
+});
+app.listen(port, () => {
+  connect();
+  console.log("Server running on 3000");
 });
 
 export default app;
