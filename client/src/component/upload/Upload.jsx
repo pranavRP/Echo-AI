@@ -7,7 +7,7 @@ const publicKey = import.meta.env.VITE_IMAGE_KIT_PUBLIC_KEY;
 const authenticator = async () => {
   try {
     const response = await fetch(
-      "https://echo-ai-backend.onrender.com/api/upload"
+      "https://echo-ai-backend.vercel.app/api/upload"
     );
 
     if (!response.ok) {
